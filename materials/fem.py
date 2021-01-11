@@ -1,14 +1,19 @@
-import numpy as np
-wLength = 1
-ei = 2
+##はりのたわみ・たわみ角を求める問題
+##有限要素法
 
-#接点の数を入力
-##ndof = input('接点の数を入力してください')
+
+
+
+import numpy as np
+
+#全体の長さ
+wLength = 1
+#曲げ剛性
+ei = 1
+
+###   節点の数を入力   ###                              #
 nd = 101
-##
-##while(!str.isdigit(ndof) or ndof < 2):
-##    ndof = input('接点の数を入力してください')
-##ndof = int(ndof)
+
 
 
 #分布荷重ベクトル
@@ -18,38 +23,52 @@ d = np.zeros((nd*2,1))
 #分割区間の長さ
 lth = wLength / (nd - 1)
 
-##for i in range(ndof):
-##    for j in (0,1):
-##        print(i +  '番目の並進方向の自由度を入力してください:')     
 
 
+###   拘束節点を設定   ###                              #
+#偶数点で並進拘束
+#奇数店で回転拘束
+rtr = [0,100,200,201]
 
-
-#拘束接点を設定
-rtr = [200,201]
-#残りを自由接点に設定
+#残りを自由節点に設定
 free = list(range(nd*2))
 for i in rtr:
     free.remove(i)
-print(free)
 
 
-#荷重を設定
-#load[101]=500
+
+#グラフ描画用の拘束フラグ
+supported = []
+gerber = []
+cantilever = []
+
+for i in range(0,nd*2,2):
+    if i in rtr:    
+        supported.append(int(i/2))
+for i in range(1,nd*2,2):
+    if i in rtr:
+        if int((i-1)/2) in supported:
+            cantilever.append(int((i-1)/2))
+            supported.remove(int((i-1)/2))
+        else:
+            gerber.append(int((i-1)/2))
+
+
+
+
+
+###   荷重を設定   ###                                  #
 load[51] = 800
-
-
 
 #剛性行列
 ke = np.array([[12*ei/lth**3, 6*ei/lth**2, -12*ei/lth**3,6*ei/lth**2],
                [6*ei/lth**2, 4*ei/lth, -6*ei/lth**2,2*ei/lth],
                [-12*ei/lth**3, -6*ei/lth**2, 12*ei/lth**3,-6*ei/lth**2],
                [6*ei/lth**2, 2*ei/lth, -6*ei/lth**2,4*ei/lth]
-
 ])
 
 
-#接点数に応じて全体剛性行列を生成
+#節点に応じて全体剛性行列を生成
 k = np.pad(ke,[0,(nd - 2)*2])
 for i in range(nd - 2):
     k += np.pad(ke,[(i+1)*2, (nd - i - 3)*2])
@@ -73,7 +92,7 @@ print(k)
 print(kInv)
 
 
-#一次的な変位・荷重ベクトルを求める
+#一次的に変位・荷重ベクトルを求める
 xv=np.array([])
 lv=[]
 
@@ -81,9 +100,6 @@ for i in free:
     lv.append(float(load[i]))
 for i in free:
     dv= np.dot(np.array(lv),kInv)
-
-print(lv)
-print(dv)
 
 
 #全体変位ベクトルに反映
@@ -94,10 +110,6 @@ for i in range(nd*2):
     d[i] = dv[count]
     count += 1
 print(d)
-
-
-
-
 
 
 
@@ -120,15 +132,18 @@ print(theta)
 #グラフを描画
 import matplotlib
 import matplotlib.pyplot as plt
-
-
+      
 fig = plt.figure()
 ax1 = fig.add_subplot(1,1,1)
 #plt.subplots_adjust(hspace= , wspace = )
-ax1.scatter(range(101),y)
-##ax1.scatter(range(101),np.zeros((1,101)),s='0.5')
-ax1.set_xlabel('接点番号')
-ax1.set_ylabel('変位')
+ax1.scatter(range(101),y,s=0.5)
+
+#曲げる前の棒を表示
+ax1.plot(list(range(101)),list(np.zeros((1,101)).flatten()),c='gray', marker='s',markevery=cantilever)
+ax1.plot(list(range(101)),list(np.zeros((1,101)).flatten()),c='gray', marker='^',markevery=supported)
+ax1.plot(list(range(101)),list(np.zeros((1,101)).flatten()),c='gray', marker='o',markevery=gerber)
+ax1.set_xlabel('node number')
+ax1.set_ylabel('displacement')
 
 plt.show()
 
