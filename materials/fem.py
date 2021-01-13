@@ -12,7 +12,8 @@ wLength = 1
 ei = 1
 
 ###   節点の数を入力   ###                              #
-nd = 101
+nd =int(input('節点の数を入力してください：'))
+#nd = 101
 
 
 
@@ -28,12 +29,44 @@ lth = wLength / (nd - 1)
 ###   拘束節点を設定   ###                              #
 #偶数点で並進拘束
 #奇数店で回転拘束
-rtr = [0,100,200,201]
+rtrP = []
+rtrR = []
+rtr=[]
+print('拘束する接点番号を入力してください')
 
+tmp = ''
+
+while(True):
+    tmp = input('並進拘束番号(1 ～ '+ str(nd) + ' 、入力なしで次に進む)：')        
+    if tmp == '':
+        break
+    rtrP.append(int(tmp))
+while(True):
+    tmp = input('並進拘束番号(1 ～ '+ str(nd) + ' 、入力なしで次に進む)：')                 
+    if tmp == '':
+        break
+    rtrR.append(int(tmp))
+
+
+for i in rtrP:
+    rtr.append(2*(i-1))
+for i in rtrR:
+    rtr.append(2*i-1)
+rtr.sort()
+print(rtr)
+                
+
+
+
+##rtr = [0,100,200,201]
 #残りを自由節点に設定
 free = list(range(nd*2))
+print(free)
+print(nd*2)
 for i in rtr:
-    free.remove(i)
+    if i in free:
+        free.remove(i)
+
 
 
 
